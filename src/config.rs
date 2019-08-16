@@ -9,6 +9,7 @@ use crate::data::{Data, DataFactory};
 use crate::error::Error;
 use crate::guard::Guard;
 use crate::resource::Resource;
+use crate::normalized_resource::NormalizedResource;
 use crate::rmap::ResourceMap;
 use crate::route::Route;
 use crate::service::{
@@ -203,6 +204,17 @@ impl ServiceConfig {
     pub fn route(&mut self, path: &str, mut route: Route) -> &mut Self {
         self.service(
             Resource::new(path)
+                .add_guards(route.take_guards())
+                .route(route),
+        )
+    }
+
+    /// Configure a normalized route for a specific path.
+    ///
+    /// This is same as `App::normalized_route()` method.
+    pub fn normalized_route(&mut self, path: &str, mut route: Route) -> &mut Self {
+        self.service(
+            NormalizedResource::new(path)
                 .add_guards(route.take_guards())
                 .route(route),
         )
