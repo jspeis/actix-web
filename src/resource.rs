@@ -20,7 +20,7 @@ use crate::route::{CreateRouteService, Route, RouteService};
 use crate::service::{ServiceRequest, ServiceResponse};
 
 type HttpService = BoxedService<ServiceRequest, ServiceResponse, Error>;
-type HttpNewService = BoxedNewService<(), ServiceRequest, ServiceResponse, Error, ()>;
+pub type HttpNewService = BoxedNewService<(), ServiceRequest, ServiceResponse, Error, ()>;
 
 /// *Resource* is an entry in resources table which corresponds to requested URL.
 ///
@@ -435,9 +435,9 @@ where
 }
 
 pub struct ResourceFactory {
-    routes: Vec<Route>,
-    data: Option<Rc<Extensions>>,
-    default: Rc<RefCell<Option<Rc<HttpNewService>>>>,
+    pub routes: Vec<Route>,
+    pub data: Option<Rc<Extensions>>,
+    pub default: Rc<RefCell<Option<Rc<HttpNewService>>>>,
 }
 
 impl NewService for ResourceFactory {
@@ -469,16 +469,16 @@ impl NewService for ResourceFactory {
     }
 }
 
-enum CreateRouteServiceItem {
+pub enum CreateRouteServiceItem {
     Future(CreateRouteService),
     Service(RouteService),
 }
 
 pub struct CreateResourceService {
-    fut: Vec<CreateRouteServiceItem>,
-    data: Option<Rc<Extensions>>,
-    default: Option<HttpService>,
-    default_fut: Option<Box<dyn Future<Item = HttpService, Error = ()>>>,
+    pub fut: Vec<CreateRouteServiceItem>,
+    pub data: Option<Rc<Extensions>>,
+    pub default: Option<HttpService>,
+    pub default_fut: Option<Box<dyn Future<Item = HttpService, Error = ()>>>,
 }
 
 impl Future for CreateResourceService {
