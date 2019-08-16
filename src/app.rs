@@ -16,6 +16,7 @@ use crate::data::{Data, DataFactory};
 use crate::dev::ResourceDef;
 use crate::error::Error;
 use crate::resource::Resource;
+use crate::normalized_resource::NormalizedResource;
 use crate::route::Route;
 use crate::service::{
     HttpServiceFactory, ServiceFactory, ServiceFactoryWrapper, ServiceRequest,
@@ -196,6 +197,19 @@ where
     pub fn route(self, path: &str, mut route: Route) -> Self {
         self.service(
             Resource::new(path)
+                .add_guards(route.take_guards())
+                .route(route),
+        )
+    }
+
+    /// Configure normalized route for a specific path.
+    /// If registering "/test1" for example, it will also allow users to
+    /// access "/test1" via "/test1/".
+    ///
+    /// ```
+    pub fn normalized_route(self, path: &str, mut route: Route) -> Self {
+        self.service(
+            NormalizedResource::new(path)
                 .add_guards(route.take_guards())
                 .route(route),
         )
