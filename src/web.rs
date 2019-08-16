@@ -9,6 +9,7 @@ use crate::error::{BlockingError, Error};
 use crate::extract::FromRequest;
 use crate::handler::{AsyncFactory, Factory};
 use crate::resource::Resource;
+use crate::normalized_resource::NormalizedResource;
 use crate::responder::Responder;
 use crate::route::Route;
 use crate::scope::Scope;
@@ -53,6 +54,42 @@ pub use crate::types::*;
 /// ```
 pub fn resource(path: &str) -> Resource {
     Resource::new(path)
+}
+
+/// Create normalized resource for a specific path.
+///
+/// Resources may have variable path segments. For example, a
+/// resource with the path `/a/{name}/c` would match all incoming
+/// requests with paths such as `/a/b/c`, `/a/1/c`, or `/a/etc/c`.
+///
+/// A variable segment is specified in the form `{identifier}`,
+/// where the identifier can be used later in a request handler to
+/// access the matched value for that segment. This is done by
+/// looking up the identifier in the `Params` object returned by
+/// `HttpRequest.match_info()` method.
+///
+/// By default, each segment matches the regular expression `[^{}/]+`.
+///
+/// You can also specify a custom regex in the form `{identifier:regex}`:
+///
+/// For instance, to route `GET`-requests on any route matching
+/// `/users/{userid}/{friend}` and store `userid` and `friend` in
+/// the exposed `Params` object:
+///
+/// ```rust
+/// # extern crate actix_web;
+/// use actix_web::{web, App, HttpResponse};
+///
+/// fn main() {
+///     let app = App::new().service(
+///         web::resource("/users/{userid}/{friend}")
+///             .normalized_route(web::get().to(|| HttpResponse::Ok()))
+///             .normalized_route(web::head().to(|| HttpResponse::MethodNotAllowed()))
+///     );
+/// }
+/// ```
+pub fn normalized_resource(path: &str) -> NormalizedResource {
+    NormalizedResource::new(path)
 }
 
 /// Configure scope for common root path.
