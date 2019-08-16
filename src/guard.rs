@@ -28,7 +28,7 @@
 #![allow(non_snake_case)]
 use actix_http::http::{self, header, uri::Uri, HttpTryFrom};
 use actix_http::RequestHead;
-
+use std::rc::Rc;
 /// Trait defines resource guards. Guards are used for routes selection.
 ///
 /// Guard can not modify request object. But it is possible to
@@ -316,6 +316,17 @@ impl Guard for HostGuard {
         }
 
         true
+    }
+}
+
+impl Guard for Rc<Vec<Box<dyn Guard>>> {
+    fn check(&self, req: &RequestHead) -> bool {
+        for guard in self.as_slice() {
+            if guard.check(req) {
+                return true;
+            }
+        }
+        false
     }
 }
 
