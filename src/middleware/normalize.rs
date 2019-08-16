@@ -152,4 +152,34 @@ mod tests {
         assert!(res.status().is_success());
     }
 
+    #[test]
+    fn test_normalized_resource_example() {
+        let mut app = init_service(
+            App::new()
+                .wrap(NormalizePath::default())
+                .service(web::normalized_resource("/v1/something").to(|| HttpResponse::Ok())),
+        );
+
+        let req = TestRequest::with_uri("/v1/something").to_request();
+        let res = call_service(&mut app, req);
+        assert!(res.status().is_success());
+
+        let req = TestRequest::with_uri("/v1/something/").to_request();
+        let res = call_service(&mut app, req);
+        assert!(res.status().is_success());
+
+        let req = TestRequest::with_uri("/v1//something/").to_request();
+        let res = call_service(&mut app, req);
+        assert!(res.status().is_success());
+
+        let req = TestRequest::with_uri("/v1//something").to_request();
+        let res = call_service(&mut app, req);
+        assert!(res.status().is_success());
+
+        let req = TestRequest::with_uri("/v1//something////").to_request();
+        let res = call_service(&mut app, req);
+        assert!(res.status().is_success());
+    }
+
+
 }
