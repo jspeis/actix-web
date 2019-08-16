@@ -17,6 +17,7 @@ use crate::dev::{AppService, HttpServiceFactory};
 use crate::error::Error;
 use crate::guard::Guard;
 use crate::resource::Resource;
+use crate::normalized_resource::NormalizedResource;
 use crate::rmap::ResourceMap;
 use crate::route::Route;
 use crate::service::{
@@ -266,6 +267,35 @@ where
     pub fn route(self, path: &str, mut route: Route) -> Self {
         self.service(
             Resource::new(path)
+                .add_guards(route.take_guards())
+                .route(route),
+        )
+    }
+
+    /// Configure normalized route for a specific path.
+    ///
+    /// This is a simplified version of the `Scope::service()` method.
+    /// This method can be called multiple times, in that case
+    /// multiple resources with one route would be registered for same resource path.
+    ///
+    /// ```rust
+    /// use actix_web::{web, App, HttpResponse};
+    ///
+    /// fn index(data: web::Path<(String, String)>) -> &'static str {
+    ///     "Welcome!"
+    /// }
+    ///
+    /// fn main() {
+    ///     let app = App::new().service(
+    ///         web::scope("/app")
+    ///             .normalized_route("/test1", web::get().to(index))
+    ///             .normalized_route("/test2", web::post().to(|| HttpResponse::MethodNotAllowed()))
+    ///     );
+    /// }
+    /// ```
+    pub fn normalized_route(self, path: &str, mut route: Route) -> Self {
+        self.service(
+            NormalizedResource::new(path)
                 .add_guards(route.take_guards())
                 .route(route),
         )
