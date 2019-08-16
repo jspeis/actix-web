@@ -483,6 +483,7 @@ mod tests {
     use crate::service::{ServiceRequest, ServiceResponse};
     use crate::test::{call_service, init_service, TestRequest};
     use crate::{guard, web, App, Error, HttpResponse};
+    use crate::middleware::NormalizePath;
 
     fn md<S, B>(
         req: ServiceRequest,
@@ -639,5 +640,36 @@ mod tests {
          let resp = call_service(&mut srv, req);
          assert_eq!(resp.status(), StatusCode::NO_CONTENT);
     }
+
+    #[test]
+    fn test_basic_normalized_paths_example() {
+        let mut app = init_service(
+            App::new()
+                .service(web::normalized_resource("/v1/something").to(|| HttpResponse::Ok())),
+        );
+
+        let req = TestRequest::with_uri("/v1/something").to_request();
+        let res = call_service(&mut app, req);
+        assert!(res.status().is_success());
+
+        let req = TestRequest::with_uri("/v1/something/").to_request();
+        let res = call_service(&mut app, req);
+        assert!(res.status().is_success());
+    }
+
+
+    #[test]
+    fn test_full_normalized_paths_example() {
+        let mut app = init_service(
+            App::new()
+                .wrap(NormalizePath::default())
+                .service(web::normalized_resource("/v1/something").to(|| HttpResponse::Ok())),
+        );
+
+        let req = TestRequest::with_uri("/v1//something//").to_request();
+        let res = call_service(&mut app, req);
+        assert!(res.status().is_success());
+    }
+
 
 }
